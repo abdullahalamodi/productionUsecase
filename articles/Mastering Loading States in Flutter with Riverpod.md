@@ -489,4 +489,8 @@ Each pattern serves a specific purpose and provides the best user experience for
 
 Remember to always handle errors gracefully and provide retry mechanisms where appropriate. With Riverpod's powerful state management capabilities, implementing these loading types becomes both elegant and maintainable.
 
+
+full example here:
+https://github.com/abdullahalamodi/productionUsecase/tree/main/examples/handle_loading_example
+
 Happy coding! 🚀
