@@ -1,8 +1,8 @@
-# Mastering Loading States in Flutter with Riverpod: A Complete Guide to the 3 Essential Loading Patterns
+# Mastering Loading States in Flutter with Riverpod: A Complete Guide to the 3 Essential Loading types
 
 Loading states are crucial for creating smooth user experiences in Flutter apps. Users need to know when something is happening, whether it's fetching data, submitting a form, or updating content. With Riverpod, we can implement loading states elegantly and efficiently.
 
-In this comprehensive guide, we'll explore **three distinct loading patterns** that cover every scenario you'll encounter in your Flutter apps. Each pattern serves a specific purpose and requires a different implementation approach.
+In this comprehensive guide, we'll explore **three distinct loading types** that cover every scenario you'll encounter in your Flutter apps. Each pattern serves a specific purpose and requires a different implementation approach.
 
 ## 🎯 The Three Types of Loading States
 
@@ -487,6 +487,6 @@ class _ProductSearchPageState extends ConsumerState<ProductSearchPage> {
 
 Each pattern serves a specific purpose and provides the best user experience for different scenarios. Choose the right pattern based on your use case, and your users will appreciate the smooth, responsive feel of your Flutter app.
 
-Remember to always handle errors gracefully and provide retry mechanisms where appropriate. With Riverpod's powerful state management capabilities, implementing these loading patterns becomes both elegant and maintainable.
+Remember to always handle errors gracefully and provide retry mechanisms where appropriate. With Riverpod's powerful state management capabilities, implementing these loading types becomes both elegant and maintainable.
 
 Happy coding! 🚀
