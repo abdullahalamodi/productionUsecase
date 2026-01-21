@@ -1,13 +1,16 @@
-Flutter Web: Reliable Updates Strategy (No Caching)
+# Flutter Web: Reliable Updates Strategy (No Caching)
+
 This guide implements a strategy to force Flutter Web updates immediately by disabling the Service Worker, enforcing no-cache headers on the server, and polling for a version file to notify users of new deployments.
 
-1. Configure Firebase Headers (firebase.json)
-We must tell the browser/CDN never to cache the entry point (index.html) or the version file.
+---
 
-Update your firebase.json:
+## 1. Configure Firebase Headers (`firebase.json`)
 
-JSON
+We must tell the browser/CDN never to cache the entry point (`index.html`) or the version file.
 
+Update your `firebase.json`:
+
+```json
 {
   "hosting": {
     "public": "build/web",
@@ -47,13 +50,17 @@ JSON
     ]
   }
 }
-2. Automate Build & Versioning (deploy.sh)
-This script extracts the version from pubspec.yaml, builds the app without the PWA service worker, and generates the version.json file that the app will check against.
+```
 
-File: deploy.sh
+---
 
-Bash
+## 2. Automate Build & Versioning (`deploy.sh`)
 
+This script extracts the version from `pubspec.yaml`, builds the app without the PWA service worker, and generates the `version.json` file that the app will check against.
+
+**File:** `deploy.sh`
+
+```bash
 #!/bin/bash
 
 # 1. Extract version from pubspec.yaml (e.g., 1.0.0+1)
@@ -82,19 +89,24 @@ echo "✅ Build complete. version.json created."
 
 # 5. Deploy to Firebase (Uncomment to use)
 # firebase deploy --only hosting
-How to run:
+```
 
-Bash
+**How to run:**
 
+```bash
 chmod +x deploy.sh
 ./deploy.sh
-3. Version State Logic (checkAppVersionProvider)
-This provider checks version.json every hour and compares it with the current app version.
+```
 
-File: check_app_version_provider.dart
+---
 
-Dart
+## 3. Version State Logic (`checkAppVersionProvider`)
 
+This provider checks `version.json` every hour and compares it with the current app version.
+
+**File:** `check_app_version_provider.dart`
+
+```dart
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
@@ -166,13 +178,17 @@ class CheckAppVersionProvider extends StateNotifier<_MainState> {
     super.dispose();
   }
 }
-4. UI Notification Banner (AppVersionUpdateBanner)
+```
+
+---
+
+## 4. UI Notification Banner (`AppVersionUpdateBanner`)
+
 A banner that appears only when state (the new version string) is not null.
 
-File: app_version_update_banner.dart
+**File:** `app_version_update_banner.dart`
 
-Dart
-
+```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:web/web.dart' as web;
@@ -199,7 +215,11 @@ class AppVersionUpdateBanner extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    const style = TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500);
+    const style = TextStyle(
+      color: Colors.white,
+      fontSize: 13,
+      fontWeight: FontWeight.w500
+    );
 
     return Container(
       decoration: const BoxDecoration(
@@ -236,11 +256,15 @@ class AppVersionUpdateBanner extends ConsumerWidget {
     );
   }
 }
-5. Implementation
-Place the banner at the top of your main layout (e.g., inside your MaterialApp builder or your main Scaffold).
+```
 
-Dart
+---
 
+## 5. Implementation
+
+Place the banner at the top of your main layout (e.g., inside your `MaterialApp` builder or your main `Scaffold`).
+
+```dart
 // inside your Main Layout or Home Screen
 Column(
   children: [
@@ -248,3 +272,16 @@ Column(
     Expanded(child: Navigator(...)), // Your main app content
   ],
 )
+```
+
+---
+
+## Summary
+
+This strategy ensures:
+
+- ✅ No Service Worker caching issues
+- ✅ Immediate update detection every hour
+- ✅ User-friendly update notification banner
+- ✅ One-click refresh to load new version
+- ✅ Automated versioning in deployment script
