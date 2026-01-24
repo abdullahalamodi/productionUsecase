@@ -1,4 +1,4 @@
-# Flutter Web: Reliable Updates Strategy (No Caching)
+# Flutter Web: Reliable Updates Strategy (No Caching) (firebase hosting)
 
 This guide implements a strategy to force Flutter Web updates immediately by disabling the Service Worker, enforcing no-cache headers on the server, and polling for a version file to notify users of new deployments.
 
@@ -39,7 +39,7 @@ Update your `firebase.json`:
         ]
       },
       {
-        "source": "**/*.@(js|css|png|jpg|jpeg|gif|webp|svg|wasm)",
+        "source": "**/*.@(css|png|jpg|jpeg|gif|webp|svg|wasm)",
         "headers": [
           {
             "key": "Cache-Control",
@@ -54,7 +54,7 @@ Update your `firebase.json`:
 
 ---
 
-## 2. Automate Build & Versioning (`deploy.sh`)
+## 2.1 Automate Build & Versioning (`deploy.sh`) (to test local)
 
 This script extracts the version from `pubspec.yaml`, builds the app without the PWA service worker, and generates the `version.json` file that the app will check against.
 
@@ -96,6 +96,79 @@ echo "✅ Build complete. version.json created."
 ```bash
 chmod +x deploy.sh
 ./deploy.sh
+```
+
+---
+## 2.2 Automate Build & Versioning (`deploy-prod.yml`) (github actions)
+Add this file to gethub actions and it will deploy on push on main branch it do the same what `deploy.sh` do.
+I'm using env variables from config file so you need to add `PROD_CONFIG` secret 
+and  `FIREBASE_SERVICE_ACCOUNT` for firebase auth
+here for build_number we're using `github.run_number` from github 
+
+**File:** `deploy-prod.yml`
+```
+name: Deploy to Firebase Hosting (production)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.3' # or 'stable'
+          channel: 'stable'
+
+      - name: Create prod.json from secret
+        run: |
+          mkdir -p assets/config
+          echo '${{ secrets.PROD_CONFIG }}' > assets/config/prod.json
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Generate internationalization files
+        run: dart run intl_utils:generate
+
+      - name: Build_runner build
+        run: dart run build_runner build -d
+
+      - name: Extract version from pubspec.yaml
+        id: version
+        run: |
+          VERSION=$(cat pubspec.yaml | grep '^version:' | cut -d ' ' -f 2 | cut -d '+' -f 1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version : $VERSION"
+          echo "Build Number : ${{ github.run_number }}"
+
+      - name: Build Flutter Web
+        run: |
+          flutter build web --release \
+            --dart-define-from-file=assets/config/prod.json \
+            --dart-define=APP_VERSION="${{ steps.version.outputs.version }}+${{ github.run_number }}" \
+            --pwa-strategy=none
+
+      - name: Generate version.json
+        run: |
+          echo "{\"version\": \"${{ steps.version.outputs.version }}\", \"build_number\": \"${{ github.run_number }}\"}" > build/web/version.json
+
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          channelId: live
+          projectId: [YOUR_PROJECT_ID]
 ```
 
 ---
